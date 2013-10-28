@@ -1,0 +1,94 @@
+#
+#  Generate Matlab/Octave MEX files
+#
+#  gfortran > 4.4.0 is strongly recommended
+#
+
+PROJECT = elfmm3d_r2013a
+MEX_GATEWAY = $(PROJECT)
+
+
+###TARGET=octave-linux
+TARGET=octave-linux-openmp
+###TARGET=matlab-linux-a64
+###TARGET=matlab-linux-a64-openmp
+###TARGET=matlab-maci
+###TARGET=matlab-maci-openmp
+###TARGET=matlab-windows-w32
+###TARGET=matlab-windows-w32-openmp
+###TARGET=matlab-windows-w64
+###TARGET=matlab-windows-w64-openmp
+
+
+include mwrap.inc
+
+
+
+
+.f.$(OBJSUF):
+	$(MEX_FC) $(MEX_FLAGS) -c $(FFLAGS) $<
+
+.c.$(OBJSUF):
+	$(MEX_CC) $(MEX_FLAGS) -c $(CFLAGS) $<
+
+.SUFFIXES: .$(OBJSUF) .f .c
+
+
+
+# SOURCE FILE LIST
+#
+vpath %.f .:../src
+
+FSRCS = \
+     elfmm3dtria_iter_1.f \
+     elhfmm3dtria_iter.f lfmm3dtrilhess_iter_1.f \
+     elfmm3dpart.f elfmm3dtria.f \
+     el3green.f el3routs.f tria3adamar.f triaaux.f \
+     elhfmm3dpart.f projintker.f projections.f helmrouts2.f \
+     el3greenh.f mindlinpieces.f \
+     lfmm3dtriahess.f lfmm3dtrilhess.f \
+     lfmm3dparthess.f lfmm3dparthess_tf.f lfmm3drouts.f \
+     d3tstrcr_mindlin.f d3mtreeplot.f  \
+     prini.f l3dterms.f laprouts2.f laproutshess2.f \
+     mpevalhessfast.f mpevalhessfast_trunc.f \
+     taevalhessfast.f taevalhessfast_trunc.f \
+     laprouts2_trunc.f cdjseval3d.f \
+     l3dmpmpfinal4.f l3dmplocfinal4.f  \
+     l3dloclocfinal4.f \
+     prinm.f yrecursion.f \
+     legewhts.f rotviarecur3.f rotproj.f dfft.f \
+     hkrand.f dlaran.f \
+     triahquad.f triagauc.f triasymq.f trirouts2_lap.f \
+     triquadflatlib.f trilib.f \
+     lfmm3dpartmindlin.f lfmm3droutsmindlin.f \
+     mindlincformmp.f mindlinbformmp.f \
+     mptoslpborder.f mindlinmpeval.f mindlinformta.f \
+     mkexpsnew.f phystoloc.f xtmdown.f laproutsquad.f \
+     ftophys.f phystof.f xyzshift.f mtxdown.f lwtsshort.f \
+     projloc.f numthetafour.f numthetahalf.f  \
+     lfmm3dtriamindlin_iter_1.f mindlinformmptri.f mindlinformtatri.f 
+
+
+#
+# object files list
+OBJS    = $(FSRCS:.f=.$(OBJSUF)) 
+#
+
+all: $(OBJS) 
+	$(MW) $(MWFLAGS) $(MEX_GATEWAY) -mb $(PROJECT).mw
+	$(MW) $(MWFLAGS) $(MEX_GATEWAY) -c $(MEX_GATEWAY).c $(PROJECT).mw
+	$(MEX) -v $(MEX_FLAGS) $(MEX_LINK) $(MEX_GATEWAY).c $(OBJS) $(MEX_LIBS)
+
+doc:
+	$(MW) $(MWFLAGS) $(MEX_GATEWAY) -mb $(PROJECT).mw
+
+#
+clean: 
+	rm -f $(OBJS)
+# 
+list: $(FSRCS)
+	echo $^
+#
+distclean: 
+	rm -f $(OBJS) int2 fort.* *.o
+

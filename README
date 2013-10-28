@@ -1,0 +1,75 @@
+Hi all,
+
+Attached is a tar directory containing all the necessary files for 
+evaluating elastostatic single and double layer potentials in either 
+free space or a half-space.  
+
+We've included a triangulated sphere as a test geometry but 
+the solver will take any input file in *.tri format
+
+---------------------------------------------------------------------
+*.tri (or Cart3D format) asks that the first line contain
+
+NVERTS  NTRIANGLES
+
+followed by a list of vertex coordinates,
+followed by a list of vertex indices that correspond to each triangle.
+
+see sphere2880.a.tri for an example or 
+
+http://people.nas.nasa.gov/~aftosmis/cart3d/cart3Dhome.html
+for the (mostly not relevant) home page.
+---------------------------------------------------------------------
+
+By a single layer potential, we mean the displacement/strain due to
+a piecewise constant traction vector over the surface.
+By a double layer potential, we mean the displacement/strain due to
+a piecewise constant jump in displacement vector over the surface.
+
+The file elfmm3dtria_e2_dr.f contains a sample driver for free space.
+It reads in the sphere geometry and creates artificial traction and 
+displacement vectors on each triangle. 
+The displacement and strain are evaluated on all triangles as well
+as a collection of (off-surface) targets.
+The file elhfmm3dtria_self_iter_dr.f contains a sample driver for 
+the half space Green's function with the field being evaluated
+on the triangle centroids themselves.
+The file elhfmm3dtria_targ_iter_dr.f contains a sample driver for 
+the half space Green's function with the field being evaluated
+at a collection  of (off-surface) targets. 
+These are all in the examples directory.
+
+Both half-space codes (with **iter** in the name) have the option
+of storing the local interactions in an initial call, so that
+subsequent calls are noticeable faster.
+
+There are some matlab interfaces (in the matlab directory) that
+we use for testing/plotting etc. Our current plan is not to 
+support them for other users.
+
+Most files in the src directory (which holds all the fortran source)
+are cleaned to the point of using implicit none, allocation of 
+large workspaces, and correct dimensioning of arrays in the calling
+sequences. Some are still (implicit real *8 (a-h,o-z)) and d3tstrcr.f
+and d3tstrcr_mindlin.f still mix up integer and real workspaces.
+These will be fixed soon.
+
+One point of explanation - the reason for a separate tree building 
+routine (d3tstrcr_mindlin.f) is to enforce that the center of the
+FMM box lies exactly on the z=0 plane. This cleanly separates
+boxes which contain image source points in the upper half-space
+from original source and  target points in the lower half-space.
+
+One important point to be aware of. The subroutine tria3adam 
+(in tria3adamar.f) uses adaptive integration to evaluate displacements
+and strains due to nearby image triangles. It currently allows for 
+200 levels of adaptive subdivision. In some pathological cases, the code
+might bog down or hang there. (e.g. an extremely thin triangle right 
+at the interface z=0). That can be disabled by setting nrec to something
+smaller (say, nrec = 3). We haven't encountered such a problem yet, but
+it could happen with a bad triangulation.
+
+
+Best,
+
+Leslie and Zydrunas
